@@ -1,0 +1,2 @@
+Replace line: <p class="text-sm mt-6" style="color:#64748b;">NÃƒÆ’Ãƒâ€šÃ‚Â£o tem conta?
+with: <p class="text-sm mt-6" style="color:#64748b;">Não tem conta?

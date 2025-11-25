@@ -1,0 +1,163 @@
+/* ====== Base ====== */
+body { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; padding: 0; }
+
+.travel-collage-bg {
+  background:
+    linear-gradient(rgba(100, 116, 139, 0.7), rgba(100, 116, 139, 0.7)),
+    linear-gradient(45deg, #87CEEB 0px, #87CEEB 80px, #40E0D0 80px, #40E0D0 160px),
+    linear-gradient(135deg, #F5DEB3 0px, #F5DEB3 60px, #2D3A8C 60px, #2D3A8C 120px),
+    linear-gradient(225deg, #FFA500 0px, #FFA500 70px, #FF6347 70px, #FF6347 140px),
+    linear-gradient(315deg, #228B22 0px, #228B22 90px, #0077BE 90px, #0077BE 180px),
+    radial-gradient(circle at 20% 30%, #FF69B4 0%, transparent 15%),
+    radial-gradient(circle at 80% 70%, #F0F8FF 0%, transparent 20%),
+    radial-gradient(circle at 60% 20%, #DAA520 0%, transparent 18%),
+    radial-gradient(circle at 30% 80%, #FF4500 0%, transparent 16%),
+    radial-gradient(circle at 90% 40%, #32CD32 0%, transparent 14%);
+  background-size:
+    100% 100%,
+    200px 200px,
+    180px 180px,
+    160px 160px,
+    220px 220px,
+    300px 300px,
+    250px 250px,
+    280px 280px,
+    240px 240px,
+    200px 200px;
+  background-position:
+    0 0,
+    0 0,
+    100px 50px,
+    200px 100px,
+    50px 150px,
+    150px 200px,
+    300px 50px,
+    400px 250px,
+    50px 300px,
+    350px 350px;
+  background-attachment: fixed;
+}
+
+.surface {
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* ====== Toast ====== */
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #10b981;
+  color: white;
+  padding: 16px 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  z-index: 1000;
+  animation: slideIn 0.3s ease-out;
+}
+@keyframes slideIn {
+  from { transform: translateX(400px); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+
+/* ====== Modal ====== */
+.modal-backdrop {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+.modal-content {
+  background: white;
+  padding: 32px;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 20px 25px rgba(0,0,0,0.15);
+}
+
+/* ====== Header tweaks ====== */
+header .max-w-4xl > .flex.items-center.gap-4 > div:nth-child(2) {
+  display: none !important; /* oculta o bloco com tÃƒÆ’Ã‚Â­tulo/subtÃƒÆ’Ã‚Â­tulo */
+}
+
+/* ====== Fixed page background ====== */
+.fixed-page-bg {
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+  background-attachment: fixed;
+}
+
+.dashboard-page-bg {
+  background-image:
+    linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)),
+    url('/PAGINA%20DO%20CLIENTE.jpg');
+}
+
+.auth-page-bg {
+  background-image:
+    linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)),
+    url('/LOGIN.jpg');
+}
+
+/* ====== Carousel ====== */
+.carousel-card {
+  background: #ffffff;
+  border-radius: 18px;
+  border: 1px solid #e2e8f0; /* delineia contra fundo claro */
+  box-shadow: 0 12px 24px rgba(2,6,23,0.10), 0 2px 6px rgba(2,6,23,0.06);
+  overflow: hidden;
+  transition: box-shadow .2s ease, transform .2s ease;
+}
+.carousel-card .media {
+  height: 220px;
+  width: 100%;
+  object-fit: cover;
+  display: block;
+}
+.carousel-card .content {
+  padding: 18px 20px 22px;
+}
+.carousel-card .cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 60%;
+  min-width: 180px;
+  padding: 12px 18px;
+  border-radius: 999px;
+  background: #d8ad5e;
+  color: #09344b;
+  font-weight: 700;
+}
+.carousel-track {
+  gap: 16px;
+  padding: 6px 2px; /* separa os cards do container */
+}
+.carousel-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #cbd5e1;
+}
+.carousel-dot.active { background: #d8ad5e; }
+
+/* ElevaÃƒÂ§ÃƒÂ£o sutil no hover para destacar ainda mais */
+.carousel-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 32px rgba(2,6,23,0.14), 0 4px 10px rgba(2,6,23,0.10);
+}
+
+/* Contraste no container do carrossel sem afetar outras .surface */
+#destinationsSection.surface {
+  background: #f8fafc; /* levemente diferente do branco dos cards */
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 6px 18px rgba(2,6,23,0.06), 0 1px 2px rgba(2,6,23,0.04);
+}

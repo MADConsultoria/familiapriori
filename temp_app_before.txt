@@ -1,0 +1,479 @@
+// app.js (module)
+/*  Integração pronta para Supabase (sem planejar backend):
+    - lê ?ref= e UTMs na URL e mantém em localStorage
+    - inicializa cliente Supabase v2
+    - busca/gera referral_code do usuário atual (mockado se não houver auth)
+    - carrega/sincroniza lista de indicações da tabela 'referrals'
+    - cria/atualiza/exclui registros em 'referrals'
+    - mantém sua UI original (com toasts, contadores e listas)
+*/
+
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.46.1";
+
+// ======= CONFIG & ESTADO =======
+const defaultConfig = {
+  background_color: "#f8fafc",
+  surface_color: "#ffffff",
+  text_color: "#09344b",
+  primary_action_color: "#d8ad5e",
+  secondary_action_color: "#3b648a",
+  user_name: "Eduardo Prado",
+  page_title: "Plataforma de Indicações",
+  share_button_text: "Compartilhar Link",
+  total_label: "Total de Indicações",
+  purchased_label: "Indicações que Compraram",
+  all_referrals_title: "Todas as Indicações",
+  purchased_referrals_title: "Indicações que Compraram",
+  font_family: "system-ui",
+  font_size: 16,
+  base_referral_url: (typeof location !== "undefined")
+    ? `${location.origin}${location.pathname}`
+    : "https://seu-dominio.com/indique"
+};
+
+let allReferrals = [];
+let currentUser = null; // { id, name, referral_code }
+
+// ======= SUPABASE =======
+const supabaseUrl = (window.__ENV && window.__ENV.SUPABASE_URL) || "";
+const supabaseAnon = (window.__ENV && window.__ENV.SUPABASE_ANON_KEY) || "";
+const supabase = (supabaseUrl && supabaseAnon) ? createClient(supabaseUrl, supabaseAnon) : null;
+
+// ======= UTILS =======
+const qs = (sel) => document.querySelector(sel);
+function showToast(message, ok = true) {
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.style.background = ok ? '#10b981' : '#ef4444';
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+function parseUrlParams() {
+  const p = new URLSearchParams(location.search);
+  const data = {
+    ref: p.get('ref') || "",
+    utm_source: p.get('utm_source') || "",
+    utm_medium: p.get('utm_medium') || "",
+    utm_campaign: p.get('utm_campaign') || "",
+    gclid: p.get('gclid') || "",
+    fbclid: p.get('fbclid') || ""
+  };
+  // Persistimos para cadastro futuro (ex: visitante que vai se inscrever)
+  localStorage.setItem('pending_ref_meta', JSON.stringify({
+    ...data,
+    ts: Date.now()
+  }));
+  // ECO na UI
+  qs('#pageRef').textContent = data.ref || "-";
+  qs('#utmSource').textContent = data.utm_source || "-";
+  qs('#utmCampaign').textContent = data.utm_campaign || "-";
+  return data;
+}
+
+function getPendingRefMeta() {
+  try {
+    const raw = localStorage.getItem('pending_ref_meta');
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+function generateCode(len = 8) {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let out = "";
+  for (let i = 0; i < len; i++) out += alphabet[Math.floor(Math.random()*alphabet.length)];
+  return out;
+}
+
+// ======= MOCK / SESSÃO =======
+// Sem auth agora: simulamos um usuário local, mas já prevemos 'profiles' no Supabase
+async function resolveCurrentUser() {
+  const local = JSON.parse(localStorage.getItem('demo_user') || 'null');
+  if (local && local.id && local.name) return local;
+
+  const demo = { id: crypto.randomUUID(), name: defaultConfig.user_name };
+  localStorage.setItem('demo_user', JSON.stringify(demo));
+  return demo;
+}
+
+// Busca ou cria um referral_code na tabela 'profiles' (se existir). Caso contrário, gera localmente.
+async function ensureReferralCode(user) {
+  let code = null;
+
+  if (supabase) {
+    try {
+      // Tenta ler perfil
+      const { data: found, error } = await supabase
+        .from('profiles')
+        .select('id,name,referral_code')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (error) console.warn('profiles select error', error);
+
+      if (found) {
+        code = found.referral_code || null;
+        if (!code) {
+          code = generateCode(8);
+          const { error: upErr } = await supabase
+            .from('profiles')
+            .update({ referral_code: code })
+            .eq('id', user.id);
+          if (upErr) console.warn('profiles update error', upErr);
+        }
+      } else {
+        // Cria perfil se não existir (id é from client; ok para demo)
+        code = generateCode(8);
+        const { error: insErr } = await supabase
+          .from('profiles')
+          .insert([{ id: user.id, name: user.name, referral_code: code }]);
+        if (insErr) console.warn('profiles insert error', insErr);
+      }
+    } catch (e) {
+      console.warn('profiles ensure error', e);
+    }
+  }
+
+  // Fallback local
+  if (!code) {
+    const localCode = localStorage.getItem('demo_ref_code');
+    if (localCode) code = localCode;
+    else {
+      code = generateCode(8);
+      localStorage.setItem('demo_ref_code', code);
+    }
+  }
+
+  return code;
+}
+
+function buildShareLink(referral_code) {
+  // Preserva utms da página do afiliado (opcional)
+  const meta = getPendingRefMeta() || {};
+  const url = new URL(defaultConfig.base_referral_url, location.origin);
+  url.searchParams.set('ref', referral_code);
+  ['utm_source','utm_medium','utm_campaign','gclid','fbclid'].forEach(k => {
+    if (meta[k]) url.searchParams.set(k, meta[k]);
+  });
+  return url.toString();
+}
+
+// ======= UI RENDER =======
+function updateUI() {
+  const totalCount = allReferrals.length;
+  const purchasedCount = allReferrals.filter(r => r.has_purchased || r.hasPurchased).length;
+
+  qs('#totalCount').textContent = totalCount;
+  qs('#purchasedCount').textContent = purchasedCount;
+
+  renderAllReferrals();
+  renderPurchasedReferrals();
+}
+
+function renderAllReferrals() {
+  const container = qs('#allReferralsList');
+  if (!allReferrals.length) {
+    container.innerHTML = '<p class="text-center py-8" style="color:#94a3b8;">Nenhuma indicação ainda. Compartilhe seu link!</p>';
+    return;
+  }
+
+  container.innerHTML = allReferrals.map(ref => {
+    const id = ref.id || ref.__backendId;
+    const date = ref.registered_at || ref.registeredAt || ref.created_at;
+    const hasPurchased = ref.has_purchased ?? ref.hasPurchased ?? false;
+    return `
+      <div class="p-4 rounded-lg flex items-center justify-between" style="background:#f8fafc;border:1px solid #e2e8f0;">
+        <div class="flex-1">
+          <p class="font-semibold mb-1" style="color:#09344b;">${ref.name || '-'}</p>
+          <p class="text-sm" style="color:#64748b;">${ref.email || '-'}</p>
+          <p class="text-xs mt-1" style="color:#94a3b8;">Cadastrado em ${date ? new Date(date).toLocaleDateString('pt-BR') : '-'}</p>
+        </div>
+        <div class="flex items-center gap-2">
+          ${hasPurchased
+            ? '<span class="px-3 py-1 rounded-full text-sm font-semibold" style="background:#d1fae5;color:#065f46;">✓ Comprou</span>'
+            : `<button data-action="purchase" data-id="${id}" class="px-3 py-1 rounded-lg text-sm font-semibold transition-colors" style="background:#e2e8f0;color:#475569;">Marcar Compra</button>`
+          }
+          <button data-action="delete" data-id="${id}" class="px-3 py-1 rounded-lg text-sm font-semibold transition-colors" style="background:#fee2e2;color:#991b1b;">Excluir</button>
+        </div>
+      </div>`;
+  }).join('');
+
+  // Delegação de eventos
+  container.querySelectorAll('button[data-action]').forEach(btn => {
+    const id = btn.getAttribute('data-id');
+    const action = btn.getAttribute('data-action');
+    if (action === 'purchase') btn.addEventListener('click', () => markAsPurchased(id));
+    if (action === 'delete') btn.addEventListener('click', () => deleteReferral(id));
+  });
+}
+
+function renderPurchasedReferrals() {
+  const container = qs('#purchasedReferralsList');
+  const purchased = allReferrals.filter(r => (r.has_purchased ?? r.hasPurchased) === true);
+  if (!purchased.length) {
+    container.innerHTML = '<p class="text-center py-8" style="color:#94a3b8;">Nenhuma compra realizada ainda.</p>';
+    return;
+  }
+  container.innerHTML = purchased.map(ref => {
+    const date = ref.registered_at || ref.registeredAt || ref.created_at;
+    return `
+      <div class="p-4 rounded-lg flex items-center justify-between" style="background:#f0fdf4;border:1px solid #bbf7d0;">
+        <div class="flex-1">
+          <p class="font-semibold mb-1" style="color:#09344b;">${ref.name || '-'}</p>
+          <p class="text-sm" style="color:#64748b;">${ref.email || '-'}</p>
+          <p class="text-xs mt-1" style="color:#94a3b8;">Cadastrado em ${date ? new Date(date).toLocaleDateString('pt-BR') : '-'}</p>
+        </div>
+        <span class="text-2xl">🎉</span>
+      </div>`;
+  }).join('');
+}
+
+// ======= SUPABASE CRUD =======
+async function fetchReferrals() {
+  if (!supabase || !currentUser?.referral_code) return;
+  const { data, error } = await supabase
+    .from('referrals')
+    .select('id,name,email,has_purchased,registered_at,created_at')
+    .eq('referrer_code', currentUser.referral_code)
+    .order('created_at', { ascending: false });
+  if (error) {
+    console.warn('fetchReferrals error', error);
+    showToast('Erro ao carregar indicações.', false);
+    return;
+  }
+  allReferrals = data || [];
+  updateUI();
+}
+
+async function createReferral({ name, email }) {
+  if (!supabase) return { ok: false };
+  const meta = getPendingRefMeta() || {};
+  const payload = {
+    name, email,
+    has_purchased: false,
+    referrer_code: currentUser?.referral_code || null,
+    referrer_user: currentUser?.id || null,
+    registered_at: new Date().toISOString(),
+    utm_source: meta.utm_source || null,
+    utm_medium: meta.utm_medium || null,
+    utm_campaign: meta.utm_campaign || null,
+    gclid: meta.gclid || null,
+    fbclid: meta.fbclid || null,
+    page_ref: meta.ref || null
+  };
+  const { data, error } = await supabase
+    .from('referrals')
+    .insert([payload])
+    .select()
+    .single();
+  if (error) {
+    console.warn('create error', error);
+    return { ok: false, error };
+  }
+  return { ok: true, data };
+}
+
+async function markAsPurchased(id) {
+  if (!supabase) return;
+  const { error } = await supabase
+    .from('referrals')
+    .update({ has_purchased: true })
+    .eq('id', id);
+  if (error) {
+    showToast('Erro ao marcar compra. Tente novamente.', false);
+    return;
+  }
+  showToast('Compra marcada com sucesso! 🎉');
+  await fetchReferrals();
+}
+
+async function deleteReferral(id) {
+  if (!supabase) return;
+  const { error } = await supabase
+    .from('referrals')
+    .delete()
+    .eq('id', id);
+  if (error) {
+    showToast('Erro ao excluir indicação. Tente novamente.', false);
+    return;
+  }
+  showToast('Indicação excluída com sucesso!');
+  await fetchReferrals();
+}
+
+// ======= EVENTOS / FORM =======
+function bindUIEvents() {
+  qs('#shareBtn').addEventListener('click', () => {
+    const link = qs('#referralLink').value;
+    navigator.clipboard.writeText(link).then(() => showToast('Link copiado para a área de transferência! 📋'));
+  });
+
+  qs('#copyIdBtn').addEventListener('click', () => {
+    const id = qs('#userId').textContent.trim();
+    if (id && id !== '••••••••') {
+      navigator.clipboard.writeText(id).then(() => showToast('ID copiado! 📎'));
+    }
+  });
+
+  qs('#instructionsBtn').addEventListener('click', () => {
+    qs('#instructionsModal').style.display = 'flex';
+  });
+  qs('#closeInstructionsBtn').addEventListener('click', () => {
+    qs('#instructionsModal').style.display = 'none';
+  });
+
+  qs('#addReferralBtn').addEventListener('click', () => {
+    if (allReferrals.length >= 999) return showToast('Limite máximo de 999 indicações atingido.');
+    qs('#addModal').style.display = 'flex';
+  });
+
+  qs('#cancelBtn').addEventListener('click', () => {
+    qs('#addModal').style.display = 'none';
+    qs('#addForm').reset();
+  });
+
+  qs('#addForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (allReferrals.length >= 999) return showToast('Limite máximo de 999 indicações atingido.');
+
+    const submitBtn = qs('#submitBtn');
+    submitBtn.disabled = true; submitBtn.textContent = 'Adicionando...';
+
+    const name = qs('#nameInput').value.trim();
+    const email = qs('#emailInput').value.trim();
+
+    // Validações simples
+    if (!name || !email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showToast('Preencha nome e um email válido.', false);
+      submitBtn.disabled = false; submitBtn.textContent = 'Adicionar';
+      return;
+    }
+
+    const res = await createReferral({ name, email });
+    submitBtn.disabled = false; submitBtn.textContent = 'Adicionar';
+
+    if (res.ok) {
+      qs('#addModal').style.display = 'none';
+      qs('#addForm').reset();
+      showToast('Indicação adicionada com sucesso! ✨');
+      await fetchReferrals();
+    } else {
+      showToast('Erro ao adicionar indicação. Tente novamente.', false);
+    }
+  });
+
+  qs('#refreshBtn').addEventListener('click', fetchReferrals);
+}
+
+// ======= CARROSSEL (placeholders) =======
+const totalSlides = 9;
+let currentSlide = 0;
+const slideWidth = 286;
+const slidesToShow = () => window.innerWidth >= 768 ? 3 : 1;
+function updateCarousel() {
+  const maxSlide = totalSlides - slidesToShow();
+  const track = qs('#carouselTrack');
+  track.style.transform = `translateX(-${currentSlide * slideWidth}px)`;
+  // Dots
+  const dots = qs('#dotsContainer');
+  dots.innerHTML = Array.from({ length: Math.max(1, maxSlide + 1) })
+    .map((_, i) => `<button class="w-3 h-3 rounded-full transition-all dot" data-slide="${i}" style="background:${i===currentSlide?'#d8ad5e':'#cbd5e1'};"></button>`)
+    .join('');
+  dots.querySelectorAll('.dot').forEach((dot, i) => dot.addEventListener('click', () => { currentSlide = i; updateCarousel(); }));
+}
+function nextSlide() {
+  const maxSlide = totalSlides - slidesToShow();
+  currentSlide = (currentSlide < maxSlide) ? currentSlide + 1 : 0;
+  updateCarousel();
+}
+function prevSlide() {
+  const maxSlide = totalSlides - slidesToShow();
+  currentSlide = (currentSlide > 0) ? currentSlide - 1 : maxSlide;
+  updateCarousel();
+}
+function bindCarouselButtons() {
+  qs('#nextBtn').addEventListener('click', nextSlide);
+  qs('#prevBtn').addEventListener('click', prevSlide);
+  setInterval(nextSlide, 5000);
+  window.addEventListener('resize', () => updateCarousel());
+}
+
+// ======= INIT =======
+async function init() {
+  // 1) Ler metadados da URL
+  parseUrlParams();
+
+  // 2) Resolver usuário (mock local por enquanto)
+  const baseUser = await resolveCurrentUser();
+  const referral_code = await ensureReferralCode(baseUser);
+  currentUser = { ...baseUser, referral_code };
+
+  // 3) Pintar cabeçalho e link
+  qs('#userGreeting').textContent = `Olá viajante, ${currentUser.name}!`;
+  qs('#userId').textContent = referral_code || '••••••••';
+  const shareLink = buildShareLink(referral_code);
+  qs('#referralLink').value = shareLink;
+
+  // 4) Carregar indicações do Supabase
+  if (supabase) await fetchReferrals();
+
+  // 5) Assinar realtime (opcional futuro; não requer backend)
+  if (supabase) {
+    try {
+      supabase
+        .channel('referrals-feed')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'referrals', filter: `referrer_code=eq.${referral_code}` },
+          async () => { await fetchReferrals(); })
+        .subscribe();
+    } catch (e) { console.warn('realtime error', e); }
+  }
+
+  // 6) Bind UI e carrossel
+  bindUIEvents();
+  bindCarouselButtons();
+  updateCarousel();
+
+  // 7) Theme/config (mantém compat com elementSdk se existir)
+  if (window.elementSdk) {
+    window.elementSdk.init({
+      defaultConfig,
+      onConfigChange: onConfigChange,
+      mapToCapabilities: (config) => ({ recolorables: [], borderables: [], fontEditable: {}, fontSizeable: {} }),
+      mapToEditPanelValues: (config) => new Map([])
+    });
+  }
+}
+
+async function onConfigChange(config) {
+  const customFont = config.font_family || defaultConfig.font_family;
+  const baseFontStack = 'system-ui, -apple-system, sans-serif';
+  const baseSize = config.font_size || defaultConfig.font_size;
+
+  document.body.style.fontFamily = `${customFont}, ${baseFontStack}`;
+  document.body.style.background = config.background_color || defaultConfig.background_color;
+
+  document.querySelectorAll('.surface').forEach(el => {
+    el.style.background = config.surface_color || defaultConfig.surface_color;
+  });
+
+  qs('#pageTitle').textContent = config.page_title || defaultConfig.page_title;
+  qs('#pageTitle').style.fontSize = `${baseSize * 1.875}px`;
+  qs('#pageTitle').style.color = config.primary_action_color || defaultConfig.primary_action_color;
+
+  qs('#shareBtn').textContent = config.share_button_text || defaultConfig.share_button_text;
+  qs('#shareBtn').style.background = config.primary_action_color || defaultConfig.primary_action_color;
+
+  qs('#totalLabel').textContent = config.total_label || defaultConfig.total_label;
+  qs('#purchasedLabel').textContent = config.purchased_label || defaultConfig.purchased_label;
+  qs('#allReferralsTitle').textContent = config.all_referrals_title || defaultConfig.all_referrals_title;
+  qs('#purchasedReferralsTitle').textContent = config.purchased_referrals_title || defaultConfig.purchased_referrals_title;
+
+  qs('#totalCount').style.color = config.secondary_action_color || defaultConfig.secondary_action_color;
+  qs('#purchasedCount').style.color = config.primary_action_color || defaultConfig.primary_action_color;
+}
+
+// Go!
+document.addEventListener('DOMContentLoaded', init);
+
+
