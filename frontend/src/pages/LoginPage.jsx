@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import supabase from '../lib/supabase.js';
+import { apiFetch } from '../lib/api.js';
 import { useAuth } from '../context/AuthContext.jsx';
 
 function LoginPage() {
@@ -10,6 +11,7 @@ function LoginPage() {
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [info, setInfo] = useState('');
 
   useEffect(() => {
     if (session) navigate('/', { replace: true });
@@ -19,6 +21,7 @@ function LoginPage() {
     event.preventDefault();
     setSubmitting(true);
     setError('');
+    setInfo('');
     try {
       const { error: signErr } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
       if (signErr) throw new Error(signErr.message || 'Falha no login');
@@ -27,6 +30,25 @@ function LoginPage() {
       setError(err.message || 'Erro inesperado');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    setError('');
+    setInfo('');
+    const targetEmail = email.trim();
+    if (!targetEmail) {
+      setError('Informe seu e-mail para receber o link de recuperação.');
+      return;
+    }
+    try {
+      await apiFetch('/api/auth/request-password-reset', {
+        method: 'POST',
+        body: JSON.stringify({ email: targetEmail }),
+      });
+      setInfo('Se o e-mail estiver cadastrado, você receberá um link para redefinir a senha.');
+    } catch (err) {
+      setError(err.message || 'Não foi possível enviar o link de recuperação.');
     }
   };
 
@@ -39,6 +61,11 @@ function LoginPage() {
           {error && (
             <div className="mb-4 p-3 rounded bg-red-100 text-red-700 border border-red-200 text-sm">
               {error}
+            </div>
+          )}
+          {info && (
+            <div className="mb-4 p-3 rounded bg-emerald-100 text-emerald-700 border border-emerald-200 text-sm">
+              {info}
             </div>
           )}
           <form className="space-y-4" onSubmit={handleSubmit}>
@@ -64,14 +91,24 @@ function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full px-4 py-2 rounded-lg font-semibold"
-              style={{ background: '#d8ad5e', color: '#09344b' }}
-            >
-              {submitting ? 'Entrando...' : 'Entrar'}
-            </button>
+            <div className="flex flex-col gap-3">
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full px-4 py-2 rounded-lg font-semibold"
+                style={{ background: '#d8ad5e', color: '#09344b' }}
+              >
+                {submitting ? 'Entrando...' : 'Entrar'}
+              </button>
+              <button
+                type="button"
+                onClick={handleResetPassword}
+                className="w-full px-4 py-2 rounded-lg font-semibold border"
+                style={{ borderColor: '#d8ad5e', color: '#09344b' }}
+              >
+                Esqueci minha senha
+              </button>
+            </div>
           </form>
         </div>
       </main>
