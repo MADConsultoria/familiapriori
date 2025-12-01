@@ -6,10 +6,11 @@
     <title>Plataforma de Indicações</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
+      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
       window.__ENV = {
-        SUPABASE_URL: 'https://vghbpggjfhsmlljvojyl.supabase.co',
-        SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnaGJwZ2dqZmhzbWxsanZvanlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIzMDkyNDcsImV4cCI6MjA3Nzg4NTI0N30.X0DkkH6hU72VlhtnqgGjFSiAjX-ZTT9l3-rY5mm_HT4',
-        API_BASE_URL: 'http://localhost:3001'
+        SUPABASE_URL: 'https://supabasepriori.beontech.com.br',
+        SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiYXVkIjoiYXV0aGVudGljYXRlZCIsImlhdCI6MTc2MTc1NjUwNiwiZXhwIjo0OTE3NDMwMTA2LCJzdWIiOiJhbm9uIn0.s8Soua0cH4i0xX7xvJsTUBNkKpG1E_NyKduwoM6V3Gc',
+        API_BASE_URL: isLocal ? 'http://localhost:3001' : 'https://priori-senior-travel-a433cb80fcf8.herokuapp.com'
       };
     </script>
   </head>
@@ -18,9 +19,6 @@
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
-
-
-
 
 
 
