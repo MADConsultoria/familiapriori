@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { formatPhone } from '../lib/format.js';
+import { formatPhone, formatBirthDateInput } from '../lib/format.js';
 import { apiFetch } from '../lib/api.js';
 
 function RegisterPage() {
@@ -22,6 +22,7 @@ function RegisterPage() {
 
   const maskedPhone = useMemo(() => formatPhone(form.whatsapp), [form.whatsapp]);
   const sanitizePhone = (value) => value.replace(/\D+/g, '').slice(0, 11);
+  const sanitizeBirthDate = (value) => formatBirthDateInput(value);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -99,7 +100,17 @@ function RegisterPage() {
             </div>
             <div>
               <label className="block text-sm font-semibold mb-2" style={{ color: '#475569' }}>Data de nascimento</label>
-              <input type="date" className="w-full px-4 py-2 rounded-lg border outline-none focus:border-blue-500" style={{ borderColor: '#cbd5e1' }} required value={form.data_nasc} onChange={handleChange('data_nasc')} />
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="DD/MM/AAAA"
+                maxLength={10}
+                className="w-full px-4 py-2 rounded-lg border outline-none focus:border-blue-500"
+                style={{ borderColor: '#cbd5e1' }}
+                required
+                value={form.data_nasc}
+                onChange={handleChange('data_nasc', sanitizeBirthDate)}
+              />
             </div>
             <div>
               <label className="block text-sm font-semibold mb-2" style={{ color: '#475569' }}>WhatsApp</label>

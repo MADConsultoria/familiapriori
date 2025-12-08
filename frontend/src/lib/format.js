@@ -12,6 +12,14 @@ export function formatPhone(value) {
   return digits || '-';
 }
 
+export function formatBirthDateInput(value) {
+  const digits = String(value || '').replace(/\D+/g, '').slice(0, 8);
+  const len = digits.length;
+  if (len <= 2) return digits;
+  if (len <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+}
+
 const currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 export function formatBRL(value) {
   const num = Number(value);
