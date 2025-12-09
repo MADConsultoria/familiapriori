@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import supabase from '../lib/supabase.js';
 import { apiFetch } from '../lib/api.js';
-import { formatCPF, formatPhone, normalizeCPF, formatBirthDateInput } from '../lib/format.js';
+import { formatCPF, formatPhone, normalizeCPF, formatBirthDateInput, isValidBirthDate } from '../lib/format.js';
 
 function RegisterPage() {
   const navigate = useNavigate();
@@ -33,6 +33,11 @@ function RegisterPage() {
     event.preventDefault();
     setSubmitting(true);
     setError('');
+    if (!isValidBirthDate(form.data_nasc)) {
+      setSubmitting(false);
+      setError('Informe a data de nascimento no formato DD/MM/AAAA.');
+      return;
+    }
     try {
       const payload = {
         ...form,
@@ -88,6 +93,9 @@ function RegisterPage() {
                 inputMode="numeric"
                 placeholder="DD/MM/AAAA"
                 maxLength={10}
+                pattern="\\d{2}/\\d{2}/\\d{4}"
+                autoComplete="bday"
+                title="Use o formato DD/MM/AAAA"
                 className="w-full px-4 py-2 rounded-lg border outline-none focus:border-blue-500"
                 style={{ borderColor: '#cbd5e1' }}
                 required

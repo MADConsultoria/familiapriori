@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { formatPhone, formatBirthDateInput } from '../lib/format.js';
+import { formatPhone, formatBirthDateInput, isValidBirthDate } from '../lib/format.js';
 import { apiFetch } from '../lib/api.js';
 
 function RegisterPage() {
@@ -29,6 +29,11 @@ function RegisterPage() {
     setSubmitting(true);
     setError('');
     setSuccess('');
+    if (!isValidBirthDate(form.data_nasc)) {
+      setSubmitting(false);
+      setError('Informe a data de nascimento no formato DD/MM/AAAA.');
+      return;
+    }
     try {
       const payload = {
         name: form.name.trim(),
@@ -105,6 +110,9 @@ function RegisterPage() {
                 inputMode="numeric"
                 placeholder="DD/MM/AAAA"
                 maxLength={10}
+                pattern="\\d{2}/\\d{2}/\\d{4}"
+                autoComplete="bday"
+                title="Use o formato DD/MM/AAAA"
                 className="w-full px-4 py-2 rounded-lg border outline-none focus:border-blue-500"
                 style={{ borderColor: '#cbd5e1' }}
                 required
