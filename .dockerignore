@@ -1,0 +1,12 @@
+node_modules
+node_modules.old
+dist
+/tmp
+*.log
+*.tmp
+.git
+.gitignore
+.vscode
+.DS_Store
+frontend/node_modules
+backend/node_modules
