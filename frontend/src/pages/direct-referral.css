@@ -97,6 +97,32 @@
   margin-top: 12px;
 }
 
+.eu-indico-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(2, 6, 23, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.eu-indico-modal-card {
+  width: min(460px, 100%);
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #dbeafe;
+  box-shadow: 0 16px 36px rgba(2, 6, 23, 0.25);
+  padding: 16px;
+}
+
+.eu-indico-modal-hint {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
 .eu-indico-secondary-button {
   border: 1px solid #8fd2a9;
   background: #ffffff;

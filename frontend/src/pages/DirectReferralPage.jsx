@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { apiFetch } from '../lib/api.js';
 import './direct-referral.css';
 
@@ -95,6 +95,28 @@ export default function DirectReferralPage() {
     setShowShareStep(true);
   };
 
+  const handleNewReferralFromShare = () => {
+    setForm({
+      affiliateName: savedAffiliate.affiliateName,
+      affiliatePhone: savedAffiliate.affiliatePhone,
+      referralName: '',
+      referralPhone: '',
+    });
+    setShowShareStep(false);
+    setShowRepeatPrompt(false);
+    setError('');
+    setCopyStatus('');
+  };
+
+  useEffect(() => {
+    if (!showRepeatPrompt) return undefined;
+    const timer = window.setTimeout(() => {
+      setShowRepeatPrompt(false);
+      setShowShareStep(true);
+    }, 30000);
+    return () => window.clearTimeout(timer);
+  }, [showRepeatPrompt]);
+
   const shareMessage = [
     `Oi ${lastReferral.referralName || 'tudo bem'}!`,
     'Te indiquei para a equipe da Priori Senior Travel.',
@@ -153,17 +175,6 @@ export default function DirectReferralPage() {
             <h1 className="eu-indico-title">Indique um amigo</h1>
             <p className="eu-indico-subtitle">Preencha os dados e nossa equipe entra em contato.</p>
 
-            {showRepeatPrompt && (
-              <div className="eu-indico-success" role="status">
-                <p className="eu-indico-success-title">Indicacao enviada com sucesso.</p>
-                <p className="eu-indico-success-question">Deseja fazer uma nova indicacao?</p>
-                <div className="eu-indico-success-actions">
-                  <button type="button" className="eu-indico-secondary-button" onClick={handleRepeatYes}>Sim</button>
-                  <button type="button" className="eu-indico-secondary-button" onClick={handleRepeatNo}>Nao</button>
-                </div>
-              </div>
-            )}
-
             {showShareStep && (
               <div className="eu-indico-share-step" role="status">
                 <h2 className="eu-indico-share-title">Nao deixe de avisar o seu amigo que iremos entrar em contato com ele...</h2>
@@ -178,6 +189,7 @@ export default function DirectReferralPage() {
                   {canNativeShare && (
                     <button type="button" className="eu-indico-secondary-button" onClick={handleNativeShare}>Compartilhar</button>
                   )}
+                  <button type="button" className="eu-indico-secondary-button" onClick={handleNewReferralFromShare}>Nova indicacao</button>
                 </div>
 
                 {copyStatus && (
@@ -245,6 +257,20 @@ export default function DirectReferralPage() {
         <span>contato@priorisenior.com.br</span>
         <span>+55 (11) 97166-7700</span>
       </footer>
+
+      {showRepeatPrompt && (
+        <div className="eu-indico-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="repeat-title">
+          <div className="eu-indico-modal-card">
+            <p className="eu-indico-success-title">Indicacao enviada com sucesso.</p>
+            <p id="repeat-title" className="eu-indico-success-question">Deseja fazer uma nova indicacao?</p>
+            <p className="eu-indico-modal-hint">Se nao escolher, vamos continuar automaticamente em 30 segundos.</p>
+            <div className="eu-indico-success-actions">
+              <button type="button" className="eu-indico-secondary-button" onClick={handleRepeatYes}>Sim</button>
+              <button type="button" className="eu-indico-secondary-button" onClick={handleRepeatNo}>Nao</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
