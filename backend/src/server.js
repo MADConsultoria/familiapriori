@@ -407,6 +407,43 @@ app.post('/api/public/referrals', async (req, res) => {
   }
 });
 
+// Publico: formulario /eu-indico (afiliado + indicado)
+app.post('/api/public/direct-referral', async (req, res) => {
+  try {
+    const {
+      affiliate_name: affiliateNameInput,
+      affiliate_phone: affiliatePhoneInput,
+      referral_name: referralNameInput,
+      referral_phone: referralPhoneInput,
+    } = req.body || {};
+
+    const affiliateName = (affiliateNameInput ?? '').toString().trim();
+    const affiliatePhone = onlyDigits(affiliatePhoneInput).slice(0, 15);
+    const referralName = (referralNameInput ?? '').toString().trim();
+    const referralPhone = onlyDigits(referralPhoneInput).slice(0, 15);
+
+    if (!affiliateName || !affiliatePhone || !referralName || !referralPhone) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Preencha nome e telefone do afiliado e do indicado.',
+      });
+    }
+
+    await postReferralWebhook({
+      source: 'eu-indico',
+      affiliate_name: affiliateName,
+      affiliate_phone: affiliatePhone,
+      referral_name: referralName,
+      referral_phone: referralPhone,
+    });
+
+    return res.status(201).json({ ok: true });
+  } catch (e) {
+    console.error('POST /api/public/direct-referral', e);
+    return res.status(500).json({ ok: false, error: 'Erro interno' });
+  }
+});
+
 app.post('/api/admin/referrals/mark-used', async (req, res) => {
   try {
     if (!admin) return res.status(500).json({ ok: false, error: 'Supabase não configurado' });

@@ -6,6 +6,7 @@ import RegisterPage from './pages/RegisterPage.jsx';
 import SignupPage from './pages/SignupPage.jsx';
 import ReferralUpdatePage from './pages/ReferralUpdatePage.jsx';
 import ResetPasswordPage from './pages/ResetPasswordPage.jsx';
+import DirectReferralPage from './pages/DirectReferralPage.jsx';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/signup" element={<SignupPage />} />
+        <Route path="/eu-indico" element={<DirectReferralPage />} />
         <Route path="/update-referral" element={<ReferralUpdatePage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/" element={<DashboardPage />} />
