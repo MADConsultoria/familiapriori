@@ -41,6 +41,7 @@ const SUPABASE_URL = process.env.SUPABASE_URL;
 const SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const PASSWORD_RESET_REDIRECT_URL = process.env.PASSWORD_RESET_REDIRECT_URL;
 const REFERRAL_WEBHOOK_URL = process.env.REFERRAL_WEBHOOK_URL || 'https://n8napisecret.priorisenior.com.br/webhook/refferal-familia-priori';
+const DIRECT_REFERRAL_WEBHOOK_URL = process.env.DIRECT_REFERRAL_WEBHOOK_URL || 'https://n8npriorisenior.beontech.com.br/webhook/refferal-familia-priori';
 const clientOptions = () => ({ auth: { autoRefreshToken: false, persistSession: false } });
 const admin = (SUPABASE_URL && SERVICE_ROLE)
   ? createClient(SUPABASE_URL, SERVICE_ROLE, clientOptions())
@@ -65,8 +66,8 @@ function randomReferralCode(len = REFERRAL_CODE_LENGTH) {
   return Array.from({ length: len }, () => REFERRAL_CODE_ALPHABET[Math.floor(Math.random() * REFERRAL_CODE_ALPHABET.length)]).join('');
 }
 
-async function postReferralWebhook(payload) {
-  const url = REFERRAL_WEBHOOK_URL?.trim();
+async function postReferralWebhook(payload, customUrl) {
+  const url = (customUrl || REFERRAL_WEBHOOK_URL || '').trim();
   if (!url) return;
   try {
     const fetcher = globalThis.fetch;
@@ -435,7 +436,7 @@ app.post('/api/public/direct-referral', async (req, res) => {
       affiliate_phone: affiliatePhone,
       referral_name: referralName,
       referral_phone: referralPhone,
-    });
+    }, DIRECT_REFERRAL_WEBHOOK_URL);
 
     return res.status(201).json({ ok: true });
   } catch (e) {
