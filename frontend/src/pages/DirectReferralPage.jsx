@@ -118,9 +118,11 @@ export default function DirectReferralPage() {
   }, [showRepeatPrompt]);
 
   const shareMessage = [
-    `Oi ${lastReferral.referralName || 'tudo bem'}!`,
-    'Te indiquei para a equipe da Priori Senior Travel.',
-    'Eles vao entrar em contato com voce em breve.',
+    `Oi, ${lastReferral.referralName || '[Nome do Lead]'}! Tudo bem?`,
+    '',
+    'Te indiquei para a equipe da Priori Senior Travel, eles sao incriveis!',
+    '',
+    'O time deles vai entrar em contato com voce pelo WhatsApp em breve, nao deixe de conhece-los...',
     '',
     `Nome de quem indicou: ${savedAffiliate.affiliateName || '-'}`,
     `WhatsApp de quem indicou: ${savedAffiliate.affiliatePhone || '-'}`,
@@ -234,7 +236,7 @@ export default function DirectReferralPage() {
                 required
               />
 
-              <label className="eu-indico-label" htmlFor="referralPhone">Telefone do indicado</label>
+              <label className="eu-indico-label" htmlFor="referralPhone">WhatsApp do indicado</label>
               <input
                 id="referralPhone"
                 className="eu-indico-input"
