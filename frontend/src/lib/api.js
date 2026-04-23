@@ -1,6 +1,8 @@
 const apiBase = (() => {
-  const fromEnv = window.__ENV?.API_BASE_URL || window.__ENV?.BACKEND_URL || '';
-  return fromEnv ? fromEnv.replace(/\/+$/, '') : '';
+  const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+  if (!isLocal) return '';
+  const fromEnv = window.__ENV?.API_BASE_URL || window.__ENV?.BACKEND_URL || 'http://localhost:3001';
+  return fromEnv.replace(/\/+$/, '');
 })();
 
 export function buildApiUrl(path = '') {
