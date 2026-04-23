@@ -15,7 +15,7 @@
 .eu-indico-hero {
   position: relative;
   min-height: 260px;
-  background-image: url('https://images.unsplash.com/photo-1543269664-76ad3997d9ea?auto=format&fit=crop&q=80&w=1400');
+  background-image: url('/fundo.jpg');
   background-size: cover;
   background-position: center;
 }
@@ -37,10 +37,10 @@
   color: #ffffff;
 }
 
-.eu-indico-brand-title {
-  font-size: 2rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+.eu-indico-logo {
+  width: min(240px, 56vw);
+  height: auto;
+  filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.35));
 }
 
 .eu-indico-brand-subtitle {

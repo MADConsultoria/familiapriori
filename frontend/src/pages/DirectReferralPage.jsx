@@ -67,7 +67,7 @@ export default function DirectReferralPage() {
         <section className="eu-indico-hero" aria-hidden="true">
           <div className="eu-indico-overlay" />
           <div className="eu-indico-brand">
-            <span className="eu-indico-brand-title">PRIORI</span>
+            <img className="eu-indico-logo" src="/logo.png" alt="Priori Senior Travel" />
             <span className="eu-indico-brand-subtitle">Senior Travel</span>
           </div>
         </section>
