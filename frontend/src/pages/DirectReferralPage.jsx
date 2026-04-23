@@ -32,9 +32,6 @@ export default function DirectReferralPage() {
     affiliateName: '',
     affiliatePhone: '',
   });
-  const [lastReferral, setLastReferral] = useState({
-    referralName: '',
-  });
 
   const updateField = (key, value) => {
     if (key.toLowerCase().includes('phone')) {
@@ -63,9 +60,6 @@ export default function DirectReferralPage() {
       setSavedAffiliate({
         affiliateName: form.affiliateName,
         affiliatePhone: form.affiliatePhone,
-      });
-      setLastReferral({
-        referralName: form.referralName,
       });
       setShowRepeatPrompt(true);
       setShowShareStep(false);
@@ -118,14 +112,11 @@ export default function DirectReferralPage() {
   }, [showRepeatPrompt]);
 
   const shareMessage = [
-    `Oi, ${lastReferral.referralName || '[Nome do Lead]'}! Tudo bem?`,
+    'Oi, tudo bem?',
     '',
     'Te indiquei para a equipe da Priori Senior Travel, eles sao incriveis!',
     '',
     'O time deles vai entrar em contato com voce pelo WhatsApp em breve, nao deixe de conhece-los...',
-    '',
-    `Nome de quem indicou: ${savedAffiliate.affiliateName || '-'}`,
-    `WhatsApp de quem indicou: ${savedAffiliate.affiliatePhone || '-'}`,
   ].join('\n');
 
   const isMobileDevice = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent || '');
@@ -265,7 +256,6 @@ export default function DirectReferralPage() {
           <div className="eu-indico-modal-card">
             <p className="eu-indico-success-title">Indicacao enviada com sucesso.</p>
             <p id="repeat-title" className="eu-indico-success-question">Deseja fazer uma nova indicacao?</p>
-            <p className="eu-indico-modal-hint">Se nao escolher, vamos continuar automaticamente em 30 segundos.</p>
             <div className="eu-indico-success-actions">
               <button type="button" className="eu-indico-secondary-button" onClick={handleRepeatYes}>Sim</button>
               <button type="button" className="eu-indico-secondary-button" onClick={handleRepeatNo}>Nao</button>
