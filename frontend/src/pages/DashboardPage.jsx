@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { apiFetch } from '../lib/api.js';
 import { formatBRL, formatCPF, formatPhone } from '../lib/format.js';
@@ -189,6 +189,15 @@ function DashboardPage() {
               >
                 Compartilhar Link
               </button>
+            </div>
+            <div className="mt-4">
+              <Link
+                to="/quiz-viagem"
+                className="inline-flex px-4 py-2 rounded-lg font-semibold border"
+                style={{ borderColor: '#0f766e', color: '#0b3142', background: '#ecfeff' }}
+              >
+                Abrir Ferramenta: Quiz de Viajante
+              </Link>
             </div>
             <div className="mt-4 p-4 rounded-lg flex items-center gap-3" style={{ background: '#f1f5f9' }}>
               <span className="text-2xl">&#128279;</span>
