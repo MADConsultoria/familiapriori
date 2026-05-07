@@ -198,6 +198,13 @@ function DashboardPage() {
               >
                 Abrir Ferramenta: Quiz de Viajante
               </Link>
+              <Link
+                to="/pesquisa-viagem"
+                className="inline-flex ml-3 px-4 py-2 rounded-lg font-semibold border"
+                style={{ borderColor: '#d8ad5e', color: '#09344b', background: '#fff7ed' }}
+              >
+                Abrir Pesquisa com Voucher
+              </Link>
             </div>
             <div className="mt-4 p-4 rounded-lg flex items-center gap-3" style={{ background: '#f1f5f9' }}>
               <span className="text-2xl">&#128279;</span>

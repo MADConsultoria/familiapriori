@@ -1,0 +1,366 @@
+import { useMemo, useState } from 'react';
+const QUESTIONS = [
+  {
+    id: 'travelPreference',
+    title: 'Preferencia de viagem',
+    prompt: 'Pensando nas suas proximas viagens, o que mais te atrai neste momento?',
+    options: [
+      'Viagens pelo Brasil',
+      'Viagens internacionais',
+    ],
+  },
+  {
+    id: 'travelWindow',
+    title: 'Janela de viagem',
+    prompt: 'Pensando nessa proxima viagem, quando ela seria mais provavel?',
+    options: [
+      '2º semestre de 2026',
+      '1º semestre de 2027',
+      '2º semestre de 2027',
+      'Ainda nao tenho uma data definida',
+    ],
+  },
+  {
+    id: 'decisionTime',
+    title: 'Tempo de decisao',
+    prompt: 'Com quanto tempo voce costuma decidir ou comprar uma viagem?',
+    options: [
+      'Mais de 12 meses antes',
+      'Entre 8 e 12 meses antes',
+      'Entre 4 e 7 meses antes',
+      'Proximo da viagem',
+    ],
+  },
+  {
+    id: 'hotelPreference',
+    title: 'Hospedagem',
+    prompt: 'Pensando na hospedagem durante a viagem, qual dessas opcoes voce prefere?',
+    options: [
+      'Hotel 4 estrelas, podendo ser mais afastado do centro',
+      'Hotel 3 estrelas bem localizado',
+      'Nao abro mao de hoteis 4 estrelas bem localizados',
+      'Nao abro mao de hoteis 5 estrelas bem localizados',
+    ],
+  },
+  {
+    id: 'travelPriority',
+    title: 'Prioridade da viagem',
+    prompt: 'Pensando nas suas viagens nos proximos anos, o que faz mais sentido para voce?',
+    options: [
+      'Prefiro viajar mais vezes, mesmo com escolhas mais simples',
+      'Prefiro viajar menos, mas com experiencias mais completas e confortaveis',
+    ],
+  },
+];
+
+const INITIAL_ANSWERS = {
+  name: '',
+  whatsapp: '',
+  travelPreference: '',
+  travelWindow: '',
+  decisionTime: '',
+  hotelPreference: '',
+  travelPriority: '',
+  desiredDestination: '',
+};
+
+const WEBHOOK_URL = 'https://n8npriorisenior.beontech.com.br/webhook/refferal-familia-priori';
+const CONTACT_STEP = 0;
+const TOTAL_STEPS = QUESTIONS.length + 2;
+
+function onlyDigits(value = '') {
+  return String(value).replace(/\D+/g, '');
+}
+
+function formatWhatsapp(value = '') {
+  const digits = onlyDigits(value).slice(0, 11);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+}
+
+function createVoucherCode() {
+  const suffix = Math.random().toString(36).slice(2, 7).toUpperCase();
+  return `PRIORI-${suffix}`;
+}
+
+function TravelSurveyPage() {
+  const [answers, setAnswers] = useState(INITIAL_ANSWERS);
+  const [submitted, setSubmitted] = useState(false);
+  const [voucherCode, setVoucherCode] = useState('');
+  const [currentStep, setCurrentStep] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+
+  const answeredCount = useMemo(() => {
+    const selectedAnswers = QUESTIONS.filter((question) => answers[question.id]).length;
+    return selectedAnswers + (answers.desiredDestination.trim() ? 1 : 0);
+  }, [answers]);
+
+  const contactComplete = Boolean(answers.name.trim()) && onlyDigits(answers.whatsapp).length >= 10;
+  const canSubmit = answeredCount === 6;
+  const isContactStep = currentStep === CONTACT_STEP;
+  const questionStepIndex = currentStep - 1;
+  const isDestinationStep = currentStep === TOTAL_STEPS - 1;
+  const currentQuestion = QUESTIONS[questionStepIndex] || null;
+  const currentAnswer = isContactStep
+    ? contactComplete
+    : isDestinationStep
+    ? answers.desiredDestination.trim()
+    : answers[currentQuestion?.id] || '';
+  const canGoNext = Boolean(currentAnswer);
+  const stepProgress = Math.round(((currentStep + 1) / TOTAL_STEPS) * 100);
+
+  const updateAnswer = (key, value) => {
+    setAnswers((prev) => ({ ...prev, [key]: key === 'whatsapp' ? formatWhatsapp(value) : value }));
+  };
+
+  const goToPreviousStep = () => {
+    setCurrentStep((prev) => Math.max(0, prev - 1));
+  };
+
+  const goToNextStep = () => {
+    if (!canGoNext) return;
+    setCurrentStep((prev) => Math.min(TOTAL_STEPS - 1, prev + 1));
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (!contactComplete || !canSubmit || submitting) return;
+
+    const code = createVoucherCode();
+    setSubmitting(true);
+    setSubmitError('');
+
+    const payload = {
+      name: answers.name.trim(),
+      whatsapp: onlyDigits(answers.whatsapp),
+      whatsapp_formatted: answers.whatsapp,
+      voucher_code: code,
+      voucher_valid_until: '2026-12-31',
+      answers: {
+        travel_preference: answers.travelPreference,
+        travel_window: answers.travelWindow,
+        decision_time: answers.decisionTime,
+        hotel_preference: answers.hotelPreference,
+        travel_priority: answers.travelPriority,
+        desired_destination: answers.desiredDestination.trim(),
+      },
+      submitted_at: new Date().toISOString(),
+      source: 'pesquisa-viagem',
+    };
+
+    try {
+      const response = await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error('Nao foi possivel enviar a pesquisa. Tente novamente.');
+      }
+
+      setVoucherCode(code);
+      setSubmitted(true);
+
+      const stored = JSON.parse(window.localStorage.getItem('prioriTravelSurvey') || '[]');
+      stored.push(payload);
+      window.localStorage.setItem('prioriTravelSurvey', JSON.stringify(stored));
+    } catch (error) {
+      setSubmitError(error.message || 'Nao foi possivel enviar a pesquisa. Tente novamente.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleRestart = () => {
+    setAnswers(INITIAL_ANSWERS);
+    setSubmitted(false);
+    setVoucherCode('');
+    setCurrentStep(0);
+    setSubmitting(false);
+    setSubmitError('');
+  };
+
+  if (submitted) {
+    return (
+      <div className="survey-page">
+        <main className="survey-main survey-main-centered">
+          <section className="voucher-panel" aria-labelledby="voucher-title">
+            <div className="voucher-brand-row">
+              <span className="voucher-kicker">Obrigado pela sua resposta</span>
+              <span className="voucher-validity">Valido ate 31/12/2026</span>
+            </div>
+
+            <h1 id="voucher-title" className="voucher-title">Seu voucher Priori esta liberado</h1>
+            <p className="voucher-copy">
+              Apresente este codigo para a equipe Priori Senior Travel e utilize seu beneficio em uma nova reserva ate dezembro deste ano.
+            </p>
+
+            <div className="voucher-code-block" aria-label="Codigo do voucher">
+              <span>Codigo do voucher</span>
+              <strong>{voucherCode}</strong>
+            </div>
+
+            <div className="voucher-details">
+              <p><strong>Nome:</strong> {answers.name}</p>
+              <p><strong>WhatsApp:</strong> {answers.whatsapp}</p>
+              <p><strong>Destino desejado:</strong> {answers.desiredDestination}</p>
+              <p><strong>Preferencia:</strong> {answers.travelPreference}</p>
+              <p><strong>Janela:</strong> {answers.travelWindow}</p>
+            </div>
+
+            <button type="button" className="survey-secondary-action" onClick={handleRestart}>
+              Responder novamente
+            </button>
+          </section>
+        </main>
+      </div>
+    );
+  }
+
+  return (
+    <div className="survey-page">
+      <main className="survey-main">
+        <section className="survey-intro" aria-labelledby="survey-title">
+          <h1 id="survey-title">Sua proxima viagem comeca aqui</h1>
+        </section>
+
+        <form className="survey-form" onSubmit={handleSubmit}>
+          <div className="survey-progress" aria-label={`Progresso da pesquisa: ${stepProgress}%`}>
+            <div className="survey-progress-text">
+              <span>{isContactStep ? 'Identificacao' : `Pergunta ${currentStep} de 6`}</span>
+              <strong>{stepProgress}%</strong>
+            </div>
+            <div className="survey-progress-track">
+              <div className="survey-progress-bar" style={{ width: `${stepProgress}%` }} />
+            </div>
+          </div>
+
+          <section className="survey-step-card">
+            {isContactStep && (
+              <fieldset className="survey-question">
+                <legend>
+                  <span>1</span>
+                  <strong>Antes de comecar</strong>
+                </legend>
+                <p>Informe seus dados para receber o voucher ao final da pesquisa.</p>
+
+                <div className="survey-contact-fields">
+                  <label className="survey-field" htmlFor="surveyName">
+                    <span>Nome</span>
+                    <input
+                      id="surveyName"
+                      type="text"
+                      value={answers.name}
+                      onChange={(event) => updateAnswer('name', event.target.value)}
+                      required
+                      placeholder="Seu nome completo"
+                    />
+                  </label>
+
+                  <label className="survey-field" htmlFor="surveyWhatsapp">
+                    <span>WhatsApp</span>
+                    <input
+                      id="surveyWhatsapp"
+                      type="tel"
+                      inputMode="numeric"
+                      value={answers.whatsapp}
+                      onChange={(event) => updateAnswer('whatsapp', event.target.value)}
+                      required
+                      placeholder="(11) 99999-9999"
+                    />
+                  </label>
+                </div>
+              </fieldset>
+            )}
+
+            {!isDestinationStep && currentQuestion && (
+              <fieldset className="survey-question">
+              <legend>
+                <span>{currentStep}</span>
+                <strong>{currentQuestion.title}</strong>
+              </legend>
+              <p>{currentQuestion.prompt}</p>
+
+              <div className="survey-options">
+                {currentQuestion.options.map((option, optionIndex) => {
+                  const optionId = `${currentQuestion.id}-${optionIndex}`;
+                  return (
+                    <label className="survey-option" htmlFor={optionId} key={option}>
+                      <input
+                        id={optionId}
+                        type="radio"
+                        name={currentQuestion.id}
+                        value={option}
+                        checked={answers[currentQuestion.id] === option}
+                        onChange={(event) => updateAnswer(currentQuestion.id, event.target.value)}
+                        required
+                      />
+                      <span>{String.fromCharCode(65 + optionIndex)}</span>
+                      <strong>{option}</strong>
+                    </label>
+                  );
+                })}
+              </div>
+              </fieldset>
+            )}
+
+            {isDestinationStep && (
+              <fieldset className="survey-question">
+                <legend>
+                  <span>6</span>
+                  <strong>Proxima viagem desejada</strong>
+                </legend>
+                <p>Para onde voce gostaria de fazer a sua proxima viagem?</p>
+                <textarea
+                  value={answers.desiredDestination}
+                  onChange={(event) => updateAnswer('desiredDestination', event.target.value)}
+                  required
+                  rows={4}
+                  placeholder="Pode ser um destino no Brasil ou no exterior. Se quiser citar mais de um, escreva separados por virgula."
+                  className="survey-textarea"
+                />
+              </fieldset>
+            )}
+
+            <div className="survey-step-actions">
+              <button
+                type="button"
+                className="survey-secondary-action"
+                onClick={goToPreviousStep}
+                disabled={currentStep === 0 || submitting}
+              >
+                Voltar
+              </button>
+
+              {isDestinationStep ? (
+                <button type="submit" className="survey-submit" disabled={!contactComplete || !canSubmit || submitting}>
+                  {submitting ? 'Enviando...' : 'Finalizar e liberar voucher'}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="survey-submit"
+                  onClick={goToNextStep}
+                  disabled={!canGoNext || submitting}
+                >
+                  Continuar
+                </button>
+              )}
+            </div>
+
+            {submitError && (
+              <p className="survey-submit-error" role="alert">{submitError}</p>
+            )}
+            <p className="survey-answer-count">{answeredCount} de 6 respostas preenchidas</p>
+          </section>
+        </form>
+      </main>
+    </div>
+  );
+}
+
+export default TravelSurveyPage;

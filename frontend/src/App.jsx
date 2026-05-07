@@ -8,6 +8,7 @@ import ReferralUpdatePage from './pages/ReferralUpdatePage.jsx';
 import ResetPasswordPage from './pages/ResetPasswordPage.jsx';
 import DirectReferralPage from './pages/DirectReferralPage.jsx';
 import TravelQuizPage from './pages/TravelQuizPage.jsx';
+import TravelSurveyPage from './pages/TravelSurveyPage.jsx';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/eu-indico" element={<DirectReferralPage />} />
         <Route path="/quiz-viagem" element={<TravelQuizPage />} />
+        <Route path="/pesquisa-viagem" element={<TravelSurveyPage />} />
         <Route path="/update-referral" element={<ReferralUpdatePage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/" element={<DashboardPage />} />
