@@ -64,7 +64,7 @@ const INITIAL_ANSWERS = {
   desiredDestination: '',
 };
 
-const WEBHOOK_URL = 'https://n8npriorisenior.beontech.com.br/webhook/refferal-familia-priori';
+const WEBHOOK_URL = 'https://n8napisecret.beontech.com.br/webhook/formspriori';
 const CONTACT_STEP = 0;
 const TOTAL_STEPS = QUESTIONS.length + 2;
 
@@ -80,15 +80,9 @@ function formatWhatsapp(value = '') {
   return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
 }
 
-function createVoucherCode() {
-  const suffix = Math.random().toString(36).slice(2, 7).toUpperCase();
-  return `PRIORI-${suffix}`;
-}
-
 function TravelSurveyPage() {
   const [answers, setAnswers] = useState(INITIAL_ANSWERS);
   const [submitted, setSubmitted] = useState(false);
-  const [voucherCode, setVoucherCode] = useState('');
   const [currentStep, setCurrentStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
@@ -129,7 +123,6 @@ function TravelSurveyPage() {
     event.preventDefault();
     if (!contactComplete || !canSubmit || submitting) return;
 
-    const code = createVoucherCode();
     setSubmitting(true);
     setSubmitError('');
 
@@ -137,8 +130,8 @@ function TravelSurveyPage() {
       name: answers.name.trim(),
       whatsapp: onlyDigits(answers.whatsapp),
       whatsapp_formatted: answers.whatsapp,
-      voucher_code: code,
-      voucher_valid_until: '2026-12-31',
+      voucher_value: 150,
+      voucher_valid_until: '2026-08-31',
       answers: {
         travel_preference: answers.travelPreference,
         travel_window: answers.travelWindow,
@@ -162,7 +155,6 @@ function TravelSurveyPage() {
         throw new Error('Nao foi possivel enviar a pesquisa. Tente novamente.');
       }
 
-      setVoucherCode(code);
       setSubmitted(true);
 
       const stored = JSON.parse(window.localStorage.getItem('prioriTravelSurvey') || '[]');
@@ -178,7 +170,6 @@ function TravelSurveyPage() {
   const handleRestart = () => {
     setAnswers(INITIAL_ANSWERS);
     setSubmitted(false);
-    setVoucherCode('');
     setCurrentStep(0);
     setSubmitting(false);
     setSubmitError('');
@@ -188,33 +179,28 @@ function TravelSurveyPage() {
     return (
       <div className="survey-page">
         <main className="survey-main survey-main-centered">
-          <section className="voucher-panel" aria-labelledby="voucher-title">
-            <div className="voucher-brand-row">
-              <span className="voucher-kicker">Obrigado pela sua resposta</span>
-              <span className="voucher-validity">Valido ate 31/12/2026</span>
+          <section className="voucher-art" aria-labelledby="voucher-title">
+            <div className="voucher-art-top">
+              <div className="voucher-ribbon" aria-hidden="true">
+                <span className="voucher-ribbon-line" />
+                <span className="voucher-bow voucher-bow-left" />
+                <span className="voucher-bow voucher-bow-right" />
+                <span className="voucher-bow-tail voucher-bow-tail-left" />
+                <span className="voucher-bow-tail voucher-bow-tail-right" />
+                <span className="voucher-bow-knot" />
+              </div>
+              <img src="/logo.png" alt="Priori Senior Travel" className="voucher-art-logo" />
             </div>
 
-            <h1 id="voucher-title" className="voucher-title">Seu voucher Priori esta liberado</h1>
-            <p className="voucher-copy">
-              Apresente este codigo para a equipe Priori Senior Travel e utilize seu beneficio em uma nova reserva ate dezembro deste ano.
-            </p>
-
-            <div className="voucher-code-block" aria-label="Codigo do voucher">
-              <span>Codigo do voucher</span>
-              <strong>{voucherCode}</strong>
+            <div className="voucher-art-bottom">
+              <div className="voucher-art-spacer" aria-hidden="true" />
+              <div className="voucher-art-content">
+                <h1 id="voucher-title">Você ganhou um voucher Priori</h1>
+                <strong>R$ 150</strong>
+                <p>Voucher válido apenas para roteiros aéreos. Não válido para day use</p>
+                <span>Válido até agosto 2026</span>
+              </div>
             </div>
-
-            <div className="voucher-details">
-              <p><strong>Nome:</strong> {answers.name}</p>
-              <p><strong>WhatsApp:</strong> {answers.whatsapp}</p>
-              <p><strong>Destino desejado:</strong> {answers.desiredDestination}</p>
-              <p><strong>Preferencia:</strong> {answers.travelPreference}</p>
-              <p><strong>Janela:</strong> {answers.travelWindow}</p>
-            </div>
-
-            <button type="button" className="survey-secondary-action" onClick={handleRestart}>
-              Responder novamente
-            </button>
           </section>
         </main>
       </div>

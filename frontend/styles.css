@@ -673,6 +673,158 @@ header .max-w-4xl > .flex.items-center.gap-4 > div:nth-child(2) {
   margin-top: 22px;
 }
 
+.voucher-art {
+  position: relative;
+  width: min(100%, 960px);
+  overflow: hidden;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 22px 54px rgba(8, 31, 44, 0.24);
+}
+
+.voucher-art-top {
+  position: relative;
+  min-height: 190px;
+  background: #053347;
+}
+
+.voucher-art-logo {
+  position: absolute;
+  right: 8%;
+  top: 42%;
+  width: min(48%, 420px);
+  height: auto;
+  transform: translateY(-50%);
+  filter: brightness(0) invert(1) drop-shadow(2px 3px 0 rgba(216, 173, 94, 0.55));
+}
+
+.voucher-ribbon {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.voucher-ribbon-line {
+  position: absolute;
+  left: 21%;
+  top: 0;
+  width: 38px;
+  height: 100%;
+  background: linear-gradient(90deg, #a86a12, #ffe88a 42%, #c98a1f 72%, #7d470d);
+  box-shadow: inset 10px 0 18px rgba(255, 255, 255, 0.28), inset -8px 0 18px rgba(73, 34, 4, 0.32);
+}
+
+.voucher-bow,
+.voucher-bow-tail,
+.voucher-bow-knot {
+  position: absolute;
+  background: radial-gradient(circle at 48% 42%, #fff6a8 0 8%, #f6bc3a 35%, #b96111 68%, #ffd96e 100%);
+  filter: drop-shadow(0 10px 12px rgba(72, 34, 4, 0.24));
+}
+
+.voucher-bow {
+  top: 51%;
+  width: 145px;
+  height: 115px;
+  border-radius: 78% 22% 72% 28%;
+}
+
+.voucher-bow-left {
+  left: 5%;
+  transform: rotate(17deg) skewX(-8deg);
+}
+
+.voucher-bow-right {
+  left: 22%;
+  transform: rotate(-17deg) skewX(8deg);
+}
+
+.voucher-bow-tail {
+  top: 70%;
+  width: 110px;
+  height: 145px;
+  clip-path: polygon(50% 0, 100% 18%, 75% 100%, 48% 78%, 18% 100%, 0 18%);
+}
+
+.voucher-bow-tail-left {
+  left: 7%;
+  transform: rotate(11deg);
+}
+
+.voucher-bow-tail-right {
+  left: 26%;
+  transform: rotate(-17deg);
+}
+
+.voucher-bow-knot {
+  left: calc(21% - 12px);
+  top: 65%;
+  width: 62px;
+  height: 46px;
+  border-radius: 45%;
+}
+
+.voucher-art-bottom {
+  display: grid;
+  grid-template-columns: 1fr;
+  min-height: 330px;
+  background: #ffffff;
+}
+
+.voucher-art-spacer {
+  display: none;
+}
+
+.voucher-art-content {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 14px;
+  padding: 30px 22px 34px;
+  text-align: center;
+}
+
+.voucher-art-content h1 {
+  max-width: 12ch;
+  color: #090909;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(2rem, 11vw, 3.8rem);
+  font-weight: 500;
+  line-height: 1.38;
+  text-transform: uppercase;
+}
+
+.voucher-art-content strong {
+  color: #050505;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(3.6rem, 18vw, 7rem);
+  font-weight: 500;
+  line-height: 0.95;
+}
+
+.voucher-art-content p {
+  max-width: 40ch;
+  color: #2f3137;
+  font-size: clamp(0.95rem, 4vw, 1.35rem);
+  line-height: 1.35;
+}
+
+.voucher-art-content span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  min-width: min(100%, 310px);
+  border: 2px solid #d2aa45;
+  border-radius: 999px;
+  padding: 8px 24px;
+  color: #1d1d1f;
+  font-size: clamp(0.95rem, 4vw, 1.25rem);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
 @media (min-width: 720px) {
   .survey-page {
     background-attachment: fixed;
@@ -768,5 +920,70 @@ header .max-w-4xl > .flex.items-center.gap-4 > div:nth-child(2) {
   .voucher-panel .survey-secondary-action {
     width: auto;
     padding: 0 18px;
+  }
+
+  .voucher-art-top {
+    min-height: 345px;
+  }
+
+  .voucher-ribbon-line {
+    left: 21%;
+    width: 42px;
+  }
+
+  .voucher-bow {
+    top: 52%;
+    width: 260px;
+    height: 205px;
+  }
+
+  .voucher-bow-left {
+    left: 4%;
+  }
+
+  .voucher-bow-right {
+    left: 26%;
+  }
+
+  .voucher-bow-tail {
+    top: 71%;
+    width: 185px;
+    height: 235px;
+  }
+
+  .voucher-bow-tail-left {
+    left: 8%;
+  }
+
+  .voucher-bow-tail-right {
+    left: 31%;
+  }
+
+  .voucher-bow-knot {
+    left: calc(21% - 17px);
+    top: 67%;
+    width: 76px;
+    height: 58px;
+  }
+
+  .voucher-art-bottom {
+    grid-template-columns: 42% 58%;
+    min-height: 345px;
+  }
+
+  .voucher-art-spacer {
+    display: block;
+  }
+
+  .voucher-art-content {
+    padding: 28px 42px 36px;
+  }
+
+  .voucher-art-content h1 {
+    font-size: 44px;
+  }
+
+  .voucher-art-content strong {
+    font-size: 82px;
   }
 }
