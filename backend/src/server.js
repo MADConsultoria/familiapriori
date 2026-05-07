@@ -43,6 +43,7 @@ const SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const PASSWORD_RESET_REDIRECT_URL = process.env.PASSWORD_RESET_REDIRECT_URL;
 const REFERRAL_WEBHOOK_URL = process.env.REFERRAL_WEBHOOK_URL || 'https://n8napisecret.priorisenior.com.br/webhook/refferal-familia-priori';
 const DIRECT_REFERRAL_WEBHOOK_URL = process.env.DIRECT_REFERRAL_WEBHOOK_URL || 'https://n8npriorisenior.beontech.com.br/webhook/refferal-familia-priori';
+const TRAVEL_SURVEY_WEBHOOK_URL = process.env.TRAVEL_SURVEY_WEBHOOK_URL || 'https://n8napisecret.beontech.com.br/webhook/formspriori';
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
 const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-4.1-mini';
 const OPENAI_IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL || 'gpt-image-1';
@@ -520,6 +521,34 @@ app.post('/api/public/direct-referral', async (req, res) => {
   }
 });
 
+app.post('/api/public/travel-survey', async (req, res) => {
+  try {
+    const payload = req.body || {};
+    const name = normalizeName(payload.name || '');
+    const whatsapp = onlyDigits(payload.whatsapp || '').slice(0, 15);
+    const answers = payload.answers && typeof payload.answers === 'object' ? payload.answers : {};
+
+    if (!name || whatsapp.length < 10) {
+      return res.status(400).json({ ok: false, error: 'Informe nome e WhatsApp.' });
+    }
+
+    if (!answers.desired_destination) {
+      return res.status(400).json({ ok: false, error: 'Responda a pesquisa antes de finalizar.' });
+    }
+
+    await postReferralWebhook({
+      ...payload,
+      name,
+      whatsapp,
+      source: payload.source || 'pesquisa-viagem',
+    }, TRAVEL_SURVEY_WEBHOOK_URL);
+
+    return res.status(201).json({ ok: true });
+  } catch (e) {
+    console.error('POST /api/public/travel-survey', e);
+    return res.status(500).json({ ok: false, error: 'Erro interno' });
+  }
+});
 app.post('/api/admin/referrals/mark-used', async (req, res) => {
   try {
     if (!admin) return res.status(500).json({ ok: false, error: 'Supabase nï¿½o configurado' });

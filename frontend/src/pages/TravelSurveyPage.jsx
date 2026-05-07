@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { apiFetch } from '../lib/api.js';
 const QUESTIONS = [
   {
     id: 'travelPreference',
@@ -64,7 +65,6 @@ const INITIAL_ANSWERS = {
   desiredDestination: '',
 };
 
-const WEBHOOK_URL = 'https://n8napisecret.beontech.com.br/webhook/formspriori';
 const CONTACT_STEP = 0;
 const TOTAL_STEPS = QUESTIONS.length + 2;
 
@@ -145,15 +145,10 @@ function TravelSurveyPage() {
     };
 
     try {
-      const response = await fetch(WEBHOOK_URL, {
+      await apiFetch('/api/public/travel-survey', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-
-      if (!response.ok) {
-        throw new Error('Nao foi possivel enviar a pesquisa. Tente novamente.');
-      }
 
       setSubmitted(true);
 
