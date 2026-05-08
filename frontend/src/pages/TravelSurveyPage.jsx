@@ -3,8 +3,8 @@ import { apiFetch } from '../lib/api.js';
 const QUESTIONS = [
   {
     id: 'travelPreference',
-    title: 'Preferencia de viagem',
-    prompt: 'Pensando nas suas proximas viagens, o que mais te atrai neste momento?',
+    title: 'Preferência de viagem',
+    prompt: 'Pensando nas suas próximas viagens, o que mais te atrai neste momento?',
     options: [
       'Viagens pelo Brasil',
       'Viagens internacionais',
@@ -13,43 +13,43 @@ const QUESTIONS = [
   {
     id: 'travelWindow',
     title: 'Janela de viagem',
-    prompt: 'Pensando nessa proxima viagem, quando ela seria mais provavel?',
+    prompt: 'Pensando nessa próxima viagem, quando ela seria mais provável?',
     options: [
       '2º semestre de 2026',
       '1º semestre de 2027',
       '2º semestre de 2027',
-      'Ainda nao tenho uma data definida',
+      'Ainda não tenho uma data definida',
     ],
   },
   {
     id: 'decisionTime',
-    title: 'Tempo de decisao',
-    prompt: 'Com quanto tempo voce costuma decidir ou comprar uma viagem?',
+    title: 'Tempo de decisão',
+    prompt: 'Com quanto tempo você costuma decidir ou comprar uma viagem?',
     options: [
       'Mais de 12 meses antes',
       'Entre 8 e 12 meses antes',
       'Entre 4 e 7 meses antes',
-      'Proximo da viagem',
+      'Próximo da viagem',
     ],
   },
   {
     id: 'hotelPreference',
     title: 'Hospedagem',
-    prompt: 'Pensando na hospedagem durante a viagem, qual dessas opcoes voce prefere?',
+    prompt: 'Pensando na hospedagem durante a viagem, qual dessas opções você prefere?',
     options: [
       'Hotel 4 estrelas, podendo ser mais afastado do centro',
       'Hotel 3 estrelas bem localizado',
-      'Nao abro mao de hoteis 4 estrelas bem localizados',
-      'Nao abro mao de hoteis 5 estrelas bem localizados',
+      'Não abro mão de hotéis 4 estrelas bem localizados',
+      'Não abro mão de hotéis 5 estrelas bem localizados',
     ],
   },
   {
     id: 'travelPriority',
     title: 'Prioridade da viagem',
-    prompt: 'Pensando nas suas viagens nos proximos anos, o que faz mais sentido para voce?',
+    prompt: 'Pensando nas suas viagens nos próximos anos, o que faz mais sentido para você?',
     options: [
       'Prefiro viajar mais vezes, mesmo com escolhas mais simples',
-      'Prefiro viajar menos, mas com experiencias mais completas e confortaveis',
+      'Prefiro viajar menos, mas com experiências mais completas e confortáveis',
     ],
   },
 ];
@@ -156,7 +156,7 @@ function TravelSurveyPage() {
       stored.push(payload);
       window.localStorage.setItem('prioriTravelSurvey', JSON.stringify(stored));
     } catch (error) {
-      setSubmitError(error.message || 'Nao foi possivel enviar a pesquisa. Tente novamente.');
+      setSubmitError(error.message || 'Não foi possível enviar a pesquisa. Tente novamente.');
     } finally {
       setSubmitting(false);
     }
@@ -201,13 +201,13 @@ function TravelSurveyPage() {
     <div className="survey-page">
       <main className="survey-main">
         <section className="survey-intro" aria-labelledby="survey-title">
-          <h1 id="survey-title">Sua proxima viagem comeca aqui</h1>
+          <h1 id="survey-title">Sua próxima viagem começa aqui</h1>
         </section>
 
         <form className="survey-form" onSubmit={handleSubmit}>
           <div className="survey-progress" aria-label={`Progresso da pesquisa: ${stepProgress}%`}>
             <div className="survey-progress-text">
-              <span>{isContactStep ? 'Identificacao' : `Pergunta ${currentStep} de 6`}</span>
+              <span>{isContactStep ? 'Identificação' : `Pergunta ${currentStep} de 6`}</span>
               <strong>{stepProgress}%</strong>
             </div>
             <div className="survey-progress-track">
@@ -220,7 +220,7 @@ function TravelSurveyPage() {
               <fieldset className="survey-question">
                 <legend>
                   <span>1</span>
-                  <strong>Antes de comecar</strong>
+                  <strong>Antes de começar</strong>
                 </legend>
                 <p>Informe seus dados para receber o voucher ao final da pesquisa.</p>
 
@@ -288,15 +288,15 @@ function TravelSurveyPage() {
               <fieldset className="survey-question">
                 <legend>
                   <span>6</span>
-                  <strong>Proxima viagem desejada</strong>
+                  <strong>Próxima viagem desejada</strong>
                 </legend>
-                <p>Para onde voce gostaria de fazer a sua proxima viagem?</p>
+                <p>Para onde você gostaria de fazer a sua próxima viagem?</p>
                 <textarea
                   value={answers.desiredDestination}
                   onChange={(event) => updateAnswer('desiredDestination', event.target.value)}
                   required
                   rows={4}
-                  placeholder="Pode ser um destino no Brasil ou no exterior. Se quiser citar mais de um, escreva separados por virgula."
+                  placeholder="Pode ser um destino no Brasil ou no exterior. Se quiser citar mais de um, escreva separados por vírgula."
                   className="survey-textarea"
                 />
               </fieldset>
