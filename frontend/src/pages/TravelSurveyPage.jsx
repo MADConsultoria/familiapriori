@@ -178,11 +178,6 @@ function TravelSurveyPage() {
             <div className="voucher-art-top">
               <div className="voucher-ribbon" aria-hidden="true">
                 <span className="voucher-ribbon-line" />
-                <span className="voucher-bow voucher-bow-left" />
-                <span className="voucher-bow voucher-bow-right" />
-                <span className="voucher-bow-tail voucher-bow-tail-left" />
-                <span className="voucher-bow-tail voucher-bow-tail-right" />
-                <span className="voucher-bow-knot" />
               </div>
               <img src="/logo.png" alt="Priori Senior Travel" className="voucher-art-logo" />
             </div>
