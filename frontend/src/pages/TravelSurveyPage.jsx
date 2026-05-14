@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { apiFetch } from '../lib/api.js';
 const QUESTIONS = [
   {
@@ -81,6 +82,7 @@ function formatWhatsapp(value = '') {
 }
 
 function TravelSurveyPage() {
+  const location = useLocation();
   const [answers, setAnswers] = useState(INITIAL_ANSWERS);
   const [submitted, setSubmitted] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -105,6 +107,8 @@ function TravelSurveyPage() {
     : answers[currentQuestion?.id] || '';
   const canGoNext = Boolean(currentAnswer);
   const stepProgress = Math.round(((currentStep + 1) / TOTAL_STEPS) * 100);
+  const surveySource = location.pathname === '/pesquisa-familia' ? 'familia' : 'geral';
+  const voucherValue = location.pathname === '/pesquisa-familia' ? 151 : 150;
 
   const updateAnswer = (key, value) => {
     setAnswers((prev) => ({ ...prev, [key]: key === 'whatsapp' ? formatWhatsapp(value) : value }));
@@ -130,7 +134,7 @@ function TravelSurveyPage() {
       name: answers.name.trim(),
       whatsapp: onlyDigits(answers.whatsapp),
       whatsapp_formatted: answers.whatsapp,
-      voucher_value: 150,
+      voucher_value: voucherValue,
       voucher_valid_until: '2026-08-31',
       answers: {
         travel_preference: answers.travelPreference,
@@ -141,7 +145,7 @@ function TravelSurveyPage() {
         desired_destination: answers.desiredDestination.trim(),
       },
       submitted_at: new Date().toISOString(),
-      source: 'pesquisa-viagem',
+      source: surveySource,
     };
 
     try {
