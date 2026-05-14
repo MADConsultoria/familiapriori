@@ -191,7 +191,7 @@ function TravelSurveyPage() {
               <div className="voucher-art-spacer" aria-hidden="true" />
               <div className="voucher-art-content">
                 <h1 id="voucher-title">Você ganhou um voucher Priori</h1>
-                <strong>R$ {voucherValue}</strong>
+                <strong>R$ 150</strong>
                 <p>Voucher válido apenas para roteiros aéreos. Não válido para day use</p>
                 <span>Válido até agosto 2026</span>
               </div>
