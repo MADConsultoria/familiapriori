@@ -19,8 +19,8 @@ function App() {
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/eu-indico" element={<DirectReferralPage />} />
         <Route path="/quiz-viagem" element={<TravelQuizPage />} />
-        <Route path="/pesquisa-viagem" element={<TravelSurveyPage />} />
-        <Route path="/pesquisa-familia" element={<TravelSurveyPage />} />
+        <Route path="/pesquisa-viagem/*" element={<TravelSurveyPage />} />
+        <Route path="/pesquisa-familia/*" element={<TravelSurveyPage />} />
         <Route path="/update-referral" element={<ReferralUpdatePage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/" element={<DashboardPage />} />

@@ -83,6 +83,7 @@ function formatWhatsapp(value = '') {
 
 function TravelSurveyPage() {
   const location = useLocation();
+  const isFamilySurvey = location.pathname.replace(/\/+$/, '') === '/pesquisa-familia';
   const [answers, setAnswers] = useState(INITIAL_ANSWERS);
   const [submitted, setSubmitted] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -107,8 +108,8 @@ function TravelSurveyPage() {
     : answers[currentQuestion?.id] || '';
   const canGoNext = Boolean(currentAnswer);
   const stepProgress = Math.round(((currentStep + 1) / TOTAL_STEPS) * 100);
-  const surveySource = location.pathname === '/pesquisa-familia' ? 'familia' : 'geral';
-  const voucherValue = location.pathname === '/pesquisa-familia' ? 151 : 150;
+  const surveySource = isFamilySurvey ? 'familia' : 'geral';
+  const voucherValue = isFamilySurvey ? 151 : 150;
 
   const updateAnswer = (key, value) => {
     setAnswers((prev) => ({ ...prev, [key]: key === 'whatsapp' ? formatWhatsapp(value) : value }));
@@ -190,7 +191,7 @@ function TravelSurveyPage() {
               <div className="voucher-art-spacer" aria-hidden="true" />
               <div className="voucher-art-content">
                 <h1 id="voucher-title">Você ganhou um voucher Priori</h1>
-                <strong>R$ 150</strong>
+                <strong>R$ {voucherValue}</strong>
                 <p>Voucher válido apenas para roteiros aéreos. Não válido para day use</p>
                 <span>Válido até agosto 2026</span>
               </div>
