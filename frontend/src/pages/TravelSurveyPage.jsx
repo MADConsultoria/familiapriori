@@ -323,7 +323,7 @@ function TravelSurveyPage() {
                   <span>7</span>
                   <strong>Família Priori</strong>
                 </legend>
-                <p>O que está faltando para você entrar para a Família Priori?</p>
+                <p>O que está faltando para você fazer a sua primeira viagem e entrar para Familia Priori?</p>
                 <textarea
                   value={answers.missingToJoin}
                   onChange={(event) => updateAnswer('missingToJoin', event.target.value)}
