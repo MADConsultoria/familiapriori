@@ -64,10 +64,10 @@ const INITIAL_ANSWERS = {
   hotelPreference: '',
   travelPriority: '',
   desiredDestination: '',
+  missingToJoin: '',
 };
 
 const CONTACT_STEP = 0;
-const TOTAL_STEPS = QUESTIONS.length + 2;
 
 function onlyDigits(value = '') {
   return String(value).replace(/\D+/g, '');
@@ -84,6 +84,10 @@ function formatWhatsapp(value = '') {
 function TravelSurveyPage() {
   const location = useLocation();
   const isFamilySurvey = location.pathname.replace(/\/+$/, '') === '/pesquisa-familia';
+  const answerTotal = isFamilySurvey ? 6 : 7;
+  const totalSteps = QUESTIONS.length + (isFamilySurvey ? 2 : 3);
+  const destinationStep = QUESTIONS.length + 1;
+  const missingToJoinStep = QUESTIONS.length + 2;
   const [answers, setAnswers] = useState(INITIAL_ANSWERS);
   const [submitted, setSubmitted] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -92,22 +96,28 @@ function TravelSurveyPage() {
 
   const answeredCount = useMemo(() => {
     const selectedAnswers = QUESTIONS.filter((question) => answers[question.id]).length;
-    return selectedAnswers + (answers.desiredDestination.trim() ? 1 : 0);
-  }, [answers]);
+    return selectedAnswers
+      + (answers.desiredDestination.trim() ? 1 : 0)
+      + (!isFamilySurvey && answers.missingToJoin.trim() ? 1 : 0);
+  }, [answers, isFamilySurvey]);
 
   const contactComplete = Boolean(answers.name.trim()) && onlyDigits(answers.whatsapp).length >= 10;
-  const canSubmit = answeredCount === 6;
+  const canSubmit = answeredCount === answerTotal;
   const isContactStep = currentStep === CONTACT_STEP;
   const questionStepIndex = currentStep - 1;
-  const isDestinationStep = currentStep === TOTAL_STEPS - 1;
+  const isDestinationStep = currentStep === destinationStep;
+  const isMissingToJoinStep = !isFamilySurvey && currentStep === missingToJoinStep;
+  const isFinalStep = isFamilySurvey ? isDestinationStep : isMissingToJoinStep;
   const currentQuestion = QUESTIONS[questionStepIndex] || null;
   const currentAnswer = isContactStep
     ? contactComplete
+    : isMissingToJoinStep
+    ? answers.missingToJoin.trim()
     : isDestinationStep
     ? answers.desiredDestination.trim()
     : answers[currentQuestion?.id] || '';
   const canGoNext = Boolean(currentAnswer);
-  const stepProgress = Math.round(((currentStep + 1) / TOTAL_STEPS) * 100);
+  const stepProgress = Math.round(((currentStep + 1) / totalSteps) * 100);
   const surveySource = isFamilySurvey ? 'familia' : 'geral';
   const voucherValue = isFamilySurvey ? 151 : 150;
 
@@ -121,7 +131,7 @@ function TravelSurveyPage() {
 
   const goToNextStep = () => {
     if (!canGoNext) return;
-    setCurrentStep((prev) => Math.min(TOTAL_STEPS - 1, prev + 1));
+    setCurrentStep((prev) => Math.min(totalSteps - 1, prev + 1));
   };
 
   const handleSubmit = async (event) => {
@@ -135,7 +145,7 @@ function TravelSurveyPage() {
       name: answers.name.trim(),
       whatsapp: onlyDigits(answers.whatsapp),
       whatsapp_formatted: answers.whatsapp,
-      voucher_value: voucherValue,
+      voucher_value: isFamilySurvey ? voucherValue : answers.missingToJoin.trim(),
       voucher_valid_until: '2026-08-31',
       answers: {
         travel_preference: answers.travelPreference,
@@ -212,7 +222,7 @@ function TravelSurveyPage() {
         <form className="survey-form" onSubmit={handleSubmit}>
           <div className="survey-progress" aria-label={`Progresso da pesquisa: ${stepProgress}%`}>
             <div className="survey-progress-text">
-              <span>{isContactStep ? 'Identificação' : `Pergunta ${currentStep} de 6`}</span>
+              <span>{isContactStep ? 'Identificação' : `Pergunta ${currentStep} de ${answerTotal}`}</span>
               <strong>{stepProgress}%</strong>
             </div>
             <div className="survey-progress-track">
@@ -307,6 +317,24 @@ function TravelSurveyPage() {
               </fieldset>
             )}
 
+            {isMissingToJoinStep && (
+              <fieldset className="survey-question">
+                <legend>
+                  <span>7</span>
+                  <strong>Família Priori</strong>
+                </legend>
+                <p>O que está faltando para você entrar para a Família Priori?</p>
+                <textarea
+                  value={answers.missingToJoin}
+                  onChange={(event) => updateAnswer('missingToJoin', event.target.value)}
+                  required
+                  rows={4}
+                  placeholder="Escreva livremente o que ajudaria você a dar esse próximo passo."
+                  className="survey-textarea"
+                />
+              </fieldset>
+            )}
+
             <div className="survey-step-actions">
               <button
                 type="button"
@@ -317,7 +345,7 @@ function TravelSurveyPage() {
                 Voltar
               </button>
 
-              {isDestinationStep ? (
+              {isFinalStep ? (
                 <button type="submit" className="survey-submit" disabled={!contactComplete || !canSubmit || submitting}>
                   {submitting ? 'Enviando...' : 'Finalizar e liberar voucher'}
                 </button>
@@ -336,7 +364,7 @@ function TravelSurveyPage() {
             {submitError && (
               <p className="survey-submit-error" role="alert">{submitError}</p>
             )}
-            <p className="survey-answer-count">{answeredCount} de 6 respostas preenchidas</p>
+            <p className="survey-answer-count">{answeredCount} de {answerTotal} respostas preenchidas</p>
           </section>
         </form>
       </main>
